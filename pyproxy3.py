@@ -68,10 +68,10 @@ def main(port, dest1, dest2):
 
 if __name__ == '__main__':
     # Define the argument parser
-    parser = argparse.ArgumentParser(description='TCP forwarding server')
-    parser.add_argument('port', type=int, help='Port number of destination 1')
-    parser.add_argument('dest1_host', help='Hostname of destination 1')    
-    parser.add_argument('dest2_host', help='Hostname of destination 2')
+    parser = argparse.ArgumentParser(description='TCP Relay/Mirror/Forwarding server')
+    parser.add_argument('port', type=int, help='Listen on `port` for incoming traffic to be duplicated')
+    parser.add_argument('dest1_host', help='Relay traffic to Hostname of destination 1')    
+    parser.add_argument('dest2_host', help='Relay traffic to Hostname of destination 2')
     
 
     # Parse the arguments
