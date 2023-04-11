@@ -1,0 +1,28 @@
+version: '3'
+services:
+  port_1:
+    image: pvrmza/docker-pyproxy3:latest
+    environment:
+      PORT: ${port_1_PORT}
+      DEST1: ${port_1_DEST1}
+      DEST2: ${port_1_DEST2}
+    ports:
+      - "${port_1_PORT}:${port_1_PORT}"
+
+  # port_2:
+  #   images: pvrmza/docker-pyproxy3:latest
+  #   environment:
+  #     PORT: ${port_2_PORT}
+  #     DEST1: ${port_2_DEST1}
+  #     DEST2: ${port_2_DEST2}
+  #   ports:
+  #     - "${port_2_PORT}:${port_2_PORT}"
+
+  # port_3:
+  #   images: pvrmza/docker-pyproxy3:latest
+  #   environment:
+  #     PORT: ${port_3_PORT}
+  #     DEST1: ${port_3_DEST1}
+  #     DEST2: ${port_3_DEST2}
+  #   ports:
+  #     - "${port_3_PORT}:${port_3_PORT}"
