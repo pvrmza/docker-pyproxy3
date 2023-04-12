@@ -8,72 +8,93 @@
 # Versión: 1.0
 # Licensed under the Apache License, Version 2.0 (the "License");
 
+
+import argparse
 import socket
 import threading
-import argparse
-import select
-import time
 
-
-def send_data(addr, data, host, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as dest_socket:
-        max_attempts = 3
-        attempt = 1
-        while attempt <= max_attempts:
-            try:
-                dest_socket.connect((host, port))
-                dest_socket.sendall(data)
-                #print(f"Sending data from {addr} to {host}:{port}")
+# send data from conn_orign to conn_dest
+def handle_client(conn_orign, addr, conn_dest):
+    with conn_orign:
+        while True:
+            data = conn_orign.recv(2048)
+            if not data:
+                print(f" - Disconnected {addr}")
                 break
+            #
+            try:
+                conn_dest.sendall(data)
             except Exception as e:
-                print(f"Error sending data - Attempt: {attempt} - from {addr} to {host}:{port}: {e}")
-                attempt += 1
-                time.sleep(1)  # Pausa de 1 segundo entre intentos
-            finally:
-                dest_socket.close()
+                print(f" - Failed to send to {dest.getpeername()}: {e}")
 
-def handle_client(conn, addr, port, dest1, dest2):
-    BUFFER_SIZE = 2048
+# send data from conn_orign to multiple conn_dest
+def handle_clients(conn_orign, addr, conn_dests):
+    with conn_orign:
+        print(f" - Connected by {addr}")
+        while True:
+            data = conn_orign.recv(2048)
+            if not data:
+                print(f" - Disconnected {addr}")
+                break
+            for dest in conn_dests:
+                try:
+                    dest.sendall(data)
+                except Exception as e:
+                    print(f" - Failed to send to {dest.getpeername()}: {e}")
 
-    print(f"New connection from {addr}")
 
-    data = conn.recv(BUFFER_SIZE)
-    clients_data = bytearray()
 
-    while data:
-        clients_data += data
-        data = conn.recv(BUFFER_SIZE)
+def start_destinations(port, dest1, dest2):
+    print(f" - check destinations...")
+    destinations = []
+    # 
+    try:
+        dest1_addr, dest1_port = dest1.split(':')
+        dest1_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        dest1_socket.connect((dest1_addr, int(dest1_port)))
+        destinations.append(dest1_socket)
+        print(f"   - Connected to {dest1}")
+    except Exception as e:
+        print(f"   ---> Failed to connect to {dest1}: {e}")
+    # 
+    try:
+        dest2_addr, dest2_port = dest2.split(':')
+        dest2_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        dest2_socket.connect((dest2_addr, int(dest2_port)))
+        destinations.append(dest2_socket)
+        print(f"   - Connected to {dest2}")
+    except Exception as e:
+        print(f"   ---> Failed to connect to {dest2}: {e}")
 
-    print(f"Received {len(clients_data)} bytes from {addr} - {clients_data}")
+    return destinations
 
-    threading.Thread(target=send_data, args=(addr, clients_data, dest1, port)).start()
-    threading.Thread(target=send_data, args=(addr, clients_data, dest2, port)).start()
+def start_server(port, dest1, dest2):
+    print(f"Start server...")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_socket.bind(('0.0.0.0', port))
+        server_socket.listen()
 
-    conn.close()
-
-def main(port, dest1, dest2):
-    LISTEN_HOST = '0.0.0.0'
-    LISTEN_PORT = port
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listen_socket:
-        listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        listen_socket.bind((LISTEN_HOST, LISTEN_PORT))
-        listen_socket.listen()
-
-        print(f"Listening on {LISTEN_HOST}:{LISTEN_PORT}")
+        print(f" - Listening on port {port} ")
 
         while True:
-            conn, addr = listen_socket.accept()
-            threading.Thread(target=handle_client, args=(conn, addr, port, dest1, dest2)).start()
+            conn, addr = server_socket.accept()
+            destinations=start_destinations(port, dest1, dest2)
+            if isinstance(destinations, list) and len(destinations) > 0:
+                threading.Thread(target=handle_client, args=(destinations[0], addr, conn)).start()
+                threading.Thread(target=handle_clients, args=(conn, addr, destinations)).start()
+
+            else:
+                print(f" - Disconnected {addr}")
+                conn.close()
+            
 
 if __name__ == '__main__':
-    # Define the argument parser
-    parser = argparse.ArgumentParser(description='TCP Relay/Mirror/Forwarding server')
-    parser.add_argument('port', type=int, help='Listen on `port` for incoming traffic to be duplicated')
-    parser.add_argument('dest1_host', help='Relay traffic to Hostname of destination 1')    
-    parser.add_argument('dest2_host', help='Relay traffic to Hostname of destination 2')
-    
 
-    # Parse the arguments
+    parser = argparse.ArgumentParser(description='TCP traffic reflector with dual destinations')
+    parser.add_argument('port', type=int, help='port to listen on')
+    parser.add_argument('dest1', type=str, help='destination 1 (IP:port)')
+    parser.add_argument('dest2', type=str, help='destination 2 (IP:port)')
     args = parser.parse_args()
-    main(args.port, args.dest1_host, args.dest2_host)
+
+    start_server(args.port, args.dest1, args.dest2)
