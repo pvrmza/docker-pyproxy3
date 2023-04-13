@@ -2,6 +2,6 @@ FROM python:3
 
 WORKDIR /app
 
-COPY pyproxy3.py ./
+COPY tcptee.py ./
 
-CMD ["sh", "-c", "python pyproxy3.py $PORT $DEST1 $DEST2"]
+CMD ["sh", "-c", "python tcptee.py $PORT $DEST1 $DEST2"]

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-# Nombre del Script: pyproxy3.py
-# Descripción: Simple TCP Proxy - mirrors TCP traffic received on a port to two remote destinations
+# Nombre del Script: tcptee.py 
+# Repositporio: https://github.com/pvrmza/docker-tcptee
+# Descripción: TCPtee - mirrors TCP traffic received on a port to two remote destinations
 # Autor: Pablo Vargas <pvr.mza@gmail.com>
 # Autor: ChatGPT <https://chat.openai.com>
 # Fecha de Creación: 11 de Abril de 2023
 # Versión: 1.0
 # Licensed under the Apache License, Version 2.0 (the "License");
-
 
 import argparse
 import socket
@@ -91,7 +91,7 @@ def start_server(port, dest1, dest2):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='TCP traffic reflector with dual destinations')
+    parser = argparse.ArgumentParser(description='TCPtee - a Relay/Mirror/Forwarding server')
     parser.add_argument('port', type=int, help='port to listen on')
     parser.add_argument('dest1', type=str, help='destination 1 (IP:port)')
     parser.add_argument('dest2', type=str, help='destination 2 (IP:port)')

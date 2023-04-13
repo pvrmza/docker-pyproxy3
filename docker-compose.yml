@@ -1,7 +1,7 @@
 version: '3'
 services:
   port_1:
-    image: pvrmza/docker-pyproxy3:latest
+    image: pvrmza/docker-tcptee:latest
     environment:
       PORT: ${port_1_PORT}
       DEST1: ${port_1_DEST1}
@@ -10,7 +10,7 @@ services:
       - "${port_1_PORT}:${port_1_PORT}"
 
   # port_2:
-  #   images: pvrmza/docker-pyproxy3:latest
+  #   images: pvrmza/docker-tcptee:latest
   #   environment:
   #     PORT: ${port_2_PORT}
   #     DEST1: ${port_2_DEST1}
@@ -19,7 +19,7 @@ services:
   #     - "${port_2_PORT}:${port_2_PORT}"
 
   # port_3:
-  #   images: pvrmza/docker-pyproxy3:latest
+  #   images: pvrmza/docker-tcptee:latest
   #   environment:
   #     PORT: ${port_3_PORT}
   #     DEST1: ${port_3_DEST1}
